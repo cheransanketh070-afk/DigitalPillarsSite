@@ -1,0 +1,15 @@
+import { readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+const root=process.cwd();
+const required=['index.html','css/styles.css','css/v4.css','js/app.js','js/world.js','js/service.js','vercel.json','package.json'];
+const services=['performance','presence','web','brand','creators','consulting'];
+for(const file of required)if(!existsSync(join(root,file)))throw new Error(`Missing required file: ${file}`);
+for(const service of services)if(!existsSync(join(root,'services',`${service}.html`)))throw new Error(`Missing service route: ${service}`);
+for(const file of ['js/app.js','js/world.js','js/service.js'])execFileSync(process.execPath,['--check',join(root,file)],{stdio:'inherit'});
+const html=readFileSync(join(root,'index.html'),'utf8');
+for(const ref of ['css/styles.css','css/v4.css','js/world.js','js/app.js'])if(!html.includes(ref))throw new Error(`index.html does not reference ${ref}`);
+if(/<div class="scene-code">|<div class="scene-caption">/.test(html))throw new Error('Decorative background text nodes are still present');
+if(!html.includes('data-open-ai')||!html.includes('data-brief'))throw new Error('Core interaction controls are missing');
+console.log('Digital Pillars validation passed.');
